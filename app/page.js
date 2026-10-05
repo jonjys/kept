@@ -19,6 +19,7 @@ export default function Home() {
     e.preventDefault();
     setBusy(true);
     setErr("");
+    try {
     const res = await fetch("/api/checkout", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -27,6 +28,10 @@ export default function Home() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.url) { setErr(data.error || "Kunde inte öppna kortbetalning"); setBusy(false); return; }
     window.location = data.url;
+    } catch {
+      setErr("Kunde inte öppna kortbetalning. Försök igen.");
+      setBusy(false);
+    }
   }
   const openLabel = when === "now" ? "nu" : when === "tomorrow" ? "imorgon" : when === "week" ? "om 7 dagar" : date || "ett datum";
   return (
@@ -39,7 +44,7 @@ export default function Home() {
       </div>
       <form onSubmit={pay}>
         <textarea maxLength={180} value={text} onChange={(e) => setText(e.target.value)} placeholder="Det du vill att de ska läsa." />
-        <label>Oppnas</label>
+        <label>Öppnas</label>
         <select value={when} onChange={(e) => setWhen(e.target.value)}>
           <option value="now">Nu</option>
           <option value="tomorrow">Imorgon</option>
@@ -47,6 +52,7 @@ export default function Home() {
           <option value="date">Ett datum</option>
         </select>
         {when === "date" ? <input style={{ marginTop: 10 }} type="date" value={date} onChange={(e) => setDate(e.target.value)} /> : null}
+        <p className="meta">Imorgon är om 24 timmar. Ett valt datum öppnas kl 00:00 UTC.</p>
         <article className="card">
           <div className="kicker">STÄNGD TILLS {openLabel.toUpperCase()}</div>
           <p className="line">{line || "Skriv lappen först."}</p>

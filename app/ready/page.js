@@ -9,7 +9,8 @@ export default function Ready() {
     if (!id) return setErr("No payment.");
     fetch("/api/open", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ session_id: id }) })
       .then(async (r) => ({ ok: r.ok, data: await r.json() }))
-      .then(({ ok, data }) => ok ? setHref(`${location.origin}/k/${data.token}`) : setErr(data.error || "Could not keep it"));
+      .then(({ ok, data }) => ok ? setHref(`${location.origin}/k/${data.token}`) : setErr(data.error || "Could not keep it"))
+      .catch(() => setErr("Could not check the payment. Keep this link and try again."));
   }, []);
-  return <main><div className="kicker">KEPT</div><h1>Send this.</h1>{err ? <p>{err}</p> : href ? <a className="btn" href={href}>Open the note link</a> : <p className="meta">Checking the €1.</p>}<p className="meta">They get the words only when it is time. The page asks them to keep one back.</p></main>;
+  return <main><div className="kicker">KEPT</div><h1>{href ? "Your note is ready." : err ? "Payment needs checking." : "Checking your payment."}</h1>{err ? <><p>{err}</p><button onClick={() => location.reload()}>Try again</button></> : href ? <><a className="btn" href={href}>Open the note link</a><p className="meta">Copy and keep this link.</p><input aria-label="Your note link" readOnly value={href} onFocus={(event) => event.target.select()} style={{ width: "100%" }} /></> : <p className="meta">Checking the €1.</p>}<p className="meta">They get the words only when it is time. The page asks them to keep one back.</p></main>;
 }
